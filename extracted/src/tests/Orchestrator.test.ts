@@ -6,11 +6,8 @@ const makeP = (id: string, enabled = true): Participant => ({
   id,
   roleName: id,
   systemPrompt: "",
-  model: "deepseek-chat",
-  providerId: "deepseek",
+  model: "deepseek-chat" as any,
   isEnabled: enabled,
-  color: "#000",
-  avatar: id[0].toUpperCase(),
 });
 
 describe("Orchestrator", () => {

@@ -3,9 +3,10 @@ import type { Session, Message } from "@/lib/conductor-types";
 import { uid, estimateTokens } from "@/lib/conductor-types";
 import { mockResponseFor } from "@/lib/conductor-data";
 import { Orchestrator } from "@/lib/Orchestrator";
-import { createProvider, getSavedApiKeys } from "@/lib/providers";
+import { createProvider, getSavedApiKeys, PROVIDER_CONFIGS } from "@/lib/providers";
 import type { ChatMessage } from "@/lib/providers/types";
 import { TelemetryStore } from "@/lib/TelemetryStore";
+import { reportFallback } from "@/lib/fallback-logger";
 import { toast } from "sonner";
 
 type UseChatProps = {
@@ -141,7 +142,11 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     const p = session.participants.find((x) => x.id === participantId);
     if (!p) return;
 
-    const provider = createProvider("deepseek") || createProvider("openrouter");
+    let provider = createProvider("deepseek");
+    if (!provider) {
+      reportFallback({ from: "useChat.streamRealResponse", what: "No DeepSeek key", reason: "Trying OpenRouter as secondary provider" });
+      provider = createProvider("openrouter");
+    }
     if (!provider) {
       toast.error("No API key configured. Add one in API Keys settings.");
       return;

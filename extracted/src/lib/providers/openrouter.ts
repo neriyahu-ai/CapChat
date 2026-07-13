@@ -1,4 +1,5 @@
 import type { LLMProvider, ProviderConfig, ChatMessage, StreamChunk } from "./types";
+import { reportFallback } from "../fallback-logger";
 
 const CONFIG: ProviderConfig = {
   id: "openrouter",
@@ -85,8 +86,8 @@ export class OpenRouterProvider implements LLMProvider {
               content: delta,
               done: finishReason === "stop" || finishReason === "length",
             };
-          } catch {
-            // skip malformed chunks
+          } catch (e) {
+            reportFallback({ from: "OpenRouterProvider.streamChat", what: "Malformed SSE chunk", reason: `Data: "${data.slice(0, 100)}"`, error: e });
           }
         }
       }

@@ -1,4 +1,5 @@
 import type { LLMProvider, ProviderConfig, ChatMessage, StreamChunk } from "./types";
+import { reportFallback } from "../fallback-logger";
 
 const CONFIG: ProviderConfig = {
   id: "deepseek",
@@ -77,8 +78,8 @@ export class DeepSeekProvider implements LLMProvider {
               content: delta,
               done: finishReason === "stop" || finishReason === "length",
             };
-          } catch {
-            // skip malformed chunks
+          } catch (e) {
+            reportFallback({ from: "DeepSeekProvider.streamChat", what: "Malformed SSE chunk", reason: `Data: "${data.slice(0, 100)}"`, error: e });
           }
         }
       }

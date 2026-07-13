@@ -5,14 +5,10 @@ import type { Session, Message, Participant } from "../lib/conductor-types";
 function makeMsg(overrides: Partial<Message> = {}): Message {
   return {
     id: "msg-1",
-    sessionId: "sess-1",
     sender: "user",
     content: "hello",
-    roleName: null,
     authorName: "User",
     tokens: 10,
-    streaming: false,
-    createdAt: Date.now(),
     ...overrides,
   };
 }
@@ -22,11 +18,8 @@ function makeParticipant(overrides: Partial<Participant> = {}): Participant {
     id: "p1",
     roleName: "Agent",
     systemPrompt: "Be helpful.",
-    model: "deepseek-chat",
-    providerId: "deepseek",
+    model: "deepseek-chat" as any,
     isEnabled: true,
-    color: "#8b5cf6",
-    avatar: "A",
     ...overrides,
   };
 }
@@ -36,7 +29,6 @@ function makeSession(overrides: Partial<Session> = {}): Session {
     id: "sess-1",
     title: "Test Session",
     createdAt: Date.now(),
-    updatedAt: Date.now(),
     participants: [makeParticipant()],
     messages: [],
     ...overrides,

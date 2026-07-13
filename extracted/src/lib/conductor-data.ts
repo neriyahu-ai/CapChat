@@ -1,3 +1,5 @@
+import { reportFallback } from "./fallback-logger";
+
 export type ModelId = "gpt-4o" | "claude-3.5-sonnet" | "llama-3" | "gemini-1.5-pro" | (string & {});
 
 export type ModelInfo = {
@@ -33,7 +35,14 @@ export const ALL_MODELS: ModelInfo[] = [
   { id: "qwen/qwen3-coder:free", label: "Qwen3 Coder (free)", vendor: "Alibaba", accent: "text-orange-400 border-orange-500/30 bg-orange-500/10", dot: "bg-orange-500" },
   { id: "nvidia/nemotron-nano-9b-v2:free", label: "Nemotron Nano 9B (free)", vendor: "Nvidia", accent: "text-green-400 border-green-500/30 bg-green-500/10", dot: "bg-green-500" },
 ];
-export const modelById = (id: ModelId) => ALL_MODELS.find((m) => m.id === id) || MODELS[0];
+export const modelById = (id: ModelId) => {
+  const found = ALL_MODELS.find((m) => m.id === id);
+  if (!found) {
+    reportFallback({ from: "conductor-data:modelById", what: `unknown model "${id}"`, reason: `Fell back to ${ALL_MODELS[0]?.id}. Add "${id}" to ALL_MODELS.` });
+    return ALL_MODELS[0];
+  }
+  return found;
+};
 
 export type RolePreset = {
   id: string;

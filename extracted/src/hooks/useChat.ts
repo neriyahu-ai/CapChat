@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { Session, Message } from "@/lib/conductor-types";
 import { uid, estimateTokens } from "@/lib/conductor-types";
 import { mockResponseFor } from "@/lib/conductor-data";
+import { Orchestrator } from "@/lib/Orchestrator";
 import { toast } from "sonner";
 
 type UseChatProps = {
@@ -18,6 +19,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
   const autoRunRef = useRef(false);
   const streamingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const orchestratorRef = useRef(new Orchestrator());
 
   useEffect(() => {
     autoRunRef.current = autoRun;
@@ -106,27 +108,34 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
   }, [sessions, activeId, updateActive, setSessions]);
 
   const runAutoLoop = useCallback(async () => {
-    setAutoRun(true);
-    autoRunRef.current = true;
-    const currentSession = sessions.find((s) => s.id === activeId);
-    if (!currentSession) return;
-    const enabled = currentSession.participants.filter((p) => p.isEnabled);
+    const session = sessions.find((s) => s.id === activeId);
+    if (!session) return;
+    const enabled = session.participants.filter((p) => p.isEnabled);
     if (enabled.length === 0) {
       toast.error("No enabled participants");
-      setAutoRun(false);
       return;
     }
-    for (const p of enabled) {
+
+    orchestratorRef.current.dispatch({ type: "START_AUTORUN", participants: session.participants });
+    setAutoRun(true);
+    autoRunRef.current = true;
+
+    const queue = orchestratorRef.current.getQueue();
+    for (const p of queue) {
       if (!autoRunRef.current) break;
       await streamAgentResponse(p.id);
       if (!autoRunRef.current) break;
+      orchestratorRef.current.dispatch({ type: "TURN_COMPLETE" });
     }
+
+    orchestratorRef.current.dispatch({ type: "PASS_COMPLETE" });
     setAutoRun(false);
     autoRunRef.current = false;
   }, [sessions, activeId, streamAgentResponse]);
 
   const toggleAutoRun = useCallback(() => {
     if (autoRun) {
+      orchestratorRef.current.dispatch({ type: "STOP_AUTORUN" });
       setAutoRun(false);
       autoRunRef.current = false;
     } else {
@@ -139,6 +148,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
       toast.info("A response is already streaming");
       return;
     }
+    orchestratorRef.current.dispatch({ type: "TRIGGER_MANUAL", participantId });
     await streamAgentResponse(participantId);
   }, [streamAgentResponse]);
 
@@ -147,7 +157,6 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     setInput,
     autoRun,
     messagesEndRef,
-    streamingRef,
     sendUserMessage,
     toggleAutoRun,
     triggerParticipant,

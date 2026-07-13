@@ -13,6 +13,7 @@ import {
   Download,
   FileText,
   Upload,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useSessions } from "@/hooks/useSessions";
 import { useChat } from "@/hooks/useChat";
 import { AddParticipantModal } from "@/components/conductor/AddParticipantModal";
+import { ApiKeyModal } from "@/components/conductor/ApiKeyModal";
 import { MessageBubble } from "@/components/conductor/MessageBubble";
 import { ParticipantCard } from "@/components/conductor/ParticipantCard";
 import { TimelineStore } from "@/lib/TimelineStore";
@@ -39,11 +41,13 @@ function Conductor() {
   } = useSessions();
 
   const {
-    input, setInput, autoRun, messagesEndRef,
+    input, setInput, autoRun, useRealApi, messagesEndRef,
     sendUserMessage, toggleAutoRun, triggerParticipant,
+    enableRealApi, disableRealApi,
   } = useChat({ active, updateActive, sessions, activeId, setSessions });
 
   const [addOpen, setAddOpen] = useState(false);
+  const [apiKeyOpen, setApiKeyOpen] = useState(false);
 
   const totalTokens = useMemo(
     () => TimelineStore.totalTokens(active.messages),
@@ -157,6 +161,11 @@ function Conductor() {
             })}
           </div>
         </ScrollArea>
+        <div className="border-t border-border/60 p-2">
+          <Button onClick={() => setApiKeyOpen(true)} variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs text-muted-foreground hover:text-foreground">
+            <KeyRound className="h-3.5 w-3.5" /> API Keys
+          </Button>
+        </div>
         </aside>
       </Panel>
 
@@ -216,6 +225,20 @@ function Conductor() {
               {totalTokens.toLocaleString()} / {CONTEXT_WINDOW.toLocaleString()}
             </span>
           </div>
+
+          <Button
+            onClick={useRealApi ? disableRealApi : enableRealApi}
+            size="sm"
+            variant="outline"
+            className={cn(
+              "h-8 gap-1.5 border px-2 text-xs",
+              useRealApi
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
+                : "border-border/60 text-muted-foreground",
+            )}
+          >
+            {useRealApi ? "Live API" : "Mock"}
+          </Button>
         </header>
 
         {/* Timeline */}
@@ -296,6 +319,7 @@ function Conductor() {
       </Panel>
 
       <AddParticipantModal open={addOpen} onOpenChange={setAddOpen} onAdd={addParticipant} />
+      <ApiKeyModal open={apiKeyOpen} onOpenChange={setApiKeyOpen} />
     </Group>
   );
 }

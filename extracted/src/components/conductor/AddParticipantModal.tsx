@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MODELS, ROLE_PRESETS, type ModelId, type RolePreset } from "@/lib/conductor-data";
+import { MODELS, EXTENDED_MODELS, ROLE_PRESETS, type ModelId, type RolePreset } from "@/lib/conductor-data";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -66,7 +66,7 @@ export function AddParticipantModal({ open, onOpenChange, onAdd }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {MODELS.map((m) => (
+                {EXTENDED_MODELS.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     <div className="flex items-center gap-2">
                       <span className={cn("h-2 w-2 rounded-full", m.dot)} />

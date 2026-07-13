@@ -3,6 +3,8 @@ import type { Session, Message } from "@/lib/conductor-types";
 import { uid, estimateTokens } from "@/lib/conductor-types";
 import { mockResponseFor } from "@/lib/conductor-data";
 import { Orchestrator } from "@/lib/Orchestrator";
+import { createProvider, getSavedApiKeys } from "@/lib/providers";
+import type { ChatMessage } from "@/lib/providers/types";
 import { toast } from "sonner";
 
 type UseChatProps = {
@@ -13,13 +15,35 @@ type UseChatProps = {
   setSessions: (fn: (prev: Session[]) => Session[]) => void;
 };
 
+function buildChatMessages(session: Session, participantId: string): ChatMessage[] {
+  const p = session.participants.find((x) => x.id === participantId);
+  if (!p) return [];
+
+  const messages: ChatMessage[] = [
+    { role: "system", content: p.systemPrompt },
+  ];
+
+  for (const msg of session.messages) {
+    if (msg.sender === "user") {
+      messages.push({ role: "user", content: msg.content, name: "Moderator" });
+    } else {
+      const label = `${msg.authorName} (${msg.roleName || msg.authorName})`;
+      messages.push({ role: "assistant", content: msg.content, name: label });
+    }
+  }
+
+  return messages;
+}
+
 export function useChat({ active, updateActive, sessions, activeId, setSessions }: UseChatProps) {
   const [input, setInput] = useState("");
   const [autoRun, setAutoRun] = useState(false);
+  const [useRealApi, setUseRealApi] = useState(false);
   const autoRunRef = useRef(false);
   const streamingRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const orchestratorRef = useRef(new Orchestrator());
+  const apiPermissionRef = useRef(false);
 
   useEffect(() => {
     autoRunRef.current = autoRun;
@@ -47,7 +71,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     setInput("");
   }, [input, updateActive]);
 
-  const streamAgentResponse = useCallback((participantId: string): Promise<void> => {
+  const streamMockResponse = useCallback((participantId: string): Promise<void> => {
     return new Promise((resolve) => {
       const session = sessions.find((s) => s.id === activeId);
       const p = session?.participants.find((x) => x.id === participantId);
@@ -107,6 +131,87 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     });
   }, [sessions, activeId, updateActive, setSessions]);
 
+  const streamRealResponse = useCallback(async (participantId: string): Promise<void> => {
+    const session = sessions.find((s) => s.id === activeId);
+    if (!session) return;
+    const p = session.participants.find((x) => x.id === participantId);
+    if (!p) return;
+
+    const provider = createProvider("openrouter") || createProvider("deepseek");
+    if (!provider) {
+      toast.error("No API key configured. Add one in API Keys settings.");
+      return;
+    }
+
+    const msgId = uid();
+    const initial: Message = {
+      id: msgId,
+      sender: "agent",
+      authorName: p.roleName,
+      roleName: p.roleName,
+      model: p.model,
+      content: "",
+      streaming: true,
+      tokens: 0,
+    };
+    updateActive((s) => ({ ...s, messages: [...s.messages, initial] }));
+    streamingRef.current = true;
+
+    try {
+      const messages = buildChatMessages(session, participantId);
+      const stream = provider.streamChat(messages, p.model);
+
+      for await (const chunk of stream) {
+        if (!streamingRef.current) break;
+        setSessions((prev) =>
+          prev.map((s) =>
+            s.id === activeId
+              ? {
+                  ...s,
+                  messages: s.messages.map((m) =>
+                    m.id === msgId ? { ...m, content: m.content + chunk.content } : m,
+                  ),
+                }
+              : s,
+          ),
+        );
+        if (chunk.done) break;
+      }
+    } catch (err: any) {
+      toast.error(`API error: ${err.message}`);
+    }
+
+    streamingRef.current = false;
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === activeId
+          ? {
+              ...s,
+              messages: s.messages.map((m) =>
+                m.id === msgId
+                  ? { ...m, streaming: false, tokens: estimateTokens(m.content) }
+                  : m,
+              ),
+            }
+          : s,
+      ),
+    );
+  }, [sessions, activeId, updateActive, setSessions]);
+
+  const streamAgentResponse = useCallback(async (participantId: string): Promise<void> => {
+    const hasKeys = Object.keys(getSavedApiKeys()).some((k) => getSavedApiKeys()[k]);
+
+    if (useRealApi && hasKeys) {
+      if (!apiPermissionRef.current) {
+        toast("API call pending — approve in settings", { duration: 5000 });
+        return;
+      }
+      await streamRealResponse(participantId);
+    } else {
+      await streamMockResponse(participantId);
+    }
+  }, [useRealApi, streamMockResponse, streamRealResponse]);
+
   const runAutoLoop = useCallback(async () => {
     const session = sessions.find((s) => s.id === activeId);
     if (!session) return;
@@ -152,13 +257,31 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     await streamAgentResponse(participantId);
   }, [streamAgentResponse]);
 
+  const enableRealApi = useCallback(() => {
+    const hasKeys = Object.keys(getSavedApiKeys()).some((k) => getSavedApiKeys()[k]);
+    if (!hasKeys) {
+      toast.error("Configure an API key first in API Keys settings");
+      return;
+    }
+    apiPermissionRef.current = true;
+    setUseRealApi(true);
+  }, []);
+
+  const disableRealApi = useCallback(() => {
+    apiPermissionRef.current = false;
+    setUseRealApi(false);
+  }, []);
+
   return {
     input,
     setInput,
     autoRun,
+    useRealApi,
     messagesEndRef,
     sendUserMessage,
     toggleAutoRun,
     triggerParticipant,
+    enableRealApi,
+    disableRealApi,
   };
 }

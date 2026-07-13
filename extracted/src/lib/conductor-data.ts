@@ -1,10 +1,10 @@
-export type ModelId = "gpt-4o" | "claude-3.5-sonnet" | "llama-3" | "gemini-1.5-pro";
+export type ModelId = "gpt-4o" | "claude-3.5-sonnet" | "llama-3" | "gemini-1.5-pro" | (string & {});
 
 export type ModelInfo = {
   id: ModelId;
   label: string;
   vendor: string;
-  accent: string; // tailwind color class token
+  accent: string;
   dot: string;
 };
 
@@ -13,6 +13,14 @@ export const MODELS: ModelInfo[] = [
   { id: "claude-3.5-sonnet", label: "Claude 3.5 Sonnet", vendor: "Anthropic", accent: "text-purple-300 border-purple-500/30 bg-purple-500/10", dot: "bg-purple-500" },
   { id: "llama-3", label: "Llama 3", vendor: "Meta", accent: "text-sky-300 border-sky-500/30 bg-sky-500/10", dot: "bg-sky-500" },
   { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro", vendor: "Google", accent: "text-amber-300 border-amber-500/30 bg-amber-500/10", dot: "bg-amber-500" },
+];
+
+export const EXTENDED_MODELS: ModelInfo[] = [
+  ...MODELS,
+  { id: "deepseek/deepseek-v4-flash:free", label: "V4 Flash (free)", vendor: "OpenRouter", accent: "text-rose-400 border-rose-500/30 bg-rose-500/10", dot: "bg-rose-500" },
+  { id: "deepseek/deepseek-chat", label: "DeepSeek Chat", vendor: "OpenRouter", accent: "text-rose-300 border-rose-500/30 bg-rose-500/10", dot: "bg-rose-500" },
+  { id: "openai/gpt-4o", label: "GPT-4o", vendor: "OpenRouter", accent: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10", dot: "bg-emerald-500" },
+  { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet", vendor: "OpenRouter", accent: "text-purple-300 border-purple-500/30 bg-purple-500/10", dot: "bg-purple-500" },
 ];
 
 export const modelById = (id: ModelId) => MODELS.find((m) => m.id === id)!;

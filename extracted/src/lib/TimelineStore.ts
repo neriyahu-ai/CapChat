@@ -1,0 +1,77 @@
+import type { Session, Message } from "./conductor-types";
+import { CONTEXT_WINDOW } from "./conductor-data";
+
+const STORAGE_KEY = "conductor-sessions";
+
+export class TimelineStore {
+  static save(sessions: Session[]): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+    } catch {
+      // localStorage full or unavailable
+    }
+  }
+
+  static load(): Session[] | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as Session[];
+    } catch {
+      return null;
+    }
+  }
+
+  static clear(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // noop
+    }
+  }
+
+  static getContext(messages: Message[]): Message[] {
+    return messages.slice(-CONTEXT_WINDOW);
+  }
+
+  static totalTokens(messages: Message[]): number {
+    return messages.reduce((sum, m) => sum + (m.tokens || 0), 0);
+  }
+
+  static contextUtilization(messages: Message[]): number {
+    return Math.min(100, (this.totalTokens(messages) / CONTEXT_WINDOW) * 100);
+  }
+
+  static exportAsJson(session: Session): string {
+    return JSON.stringify(session, null, 2);
+  }
+
+  static exportAsMarkdown(session: Session): string {
+    const lines: string[] = [];
+    lines.push(`# ${session.title}`);
+    lines.push(`*Exported: ${new Date().toISOString()}*`);
+    lines.push("");
+    lines.push(`**Participants:** ${session.participants.map((p) => `${p.roleName} (${p.model})`).join(", ")}`);
+    lines.push("---");
+    lines.push("");
+
+    for (const msg of session.messages) {
+      const author = msg.sender === "user" ? "You (Moderator)" : `${msg.authorName}${msg.roleName ? ` (${msg.roleName})` : ""}`;
+      lines.push(`**${author}:**`);
+      lines.push(msg.content);
+      lines.push("");
+    }
+
+    return lines.join("\n");
+  }
+
+  static importFromJson(json: string): Session | null {
+    try {
+      const session = JSON.parse(json) as Session;
+      if (!session.id || !session.messages || !session.participants) return null;
+      return session;
+    } catch {
+      return null;
+    }
+  }
+}

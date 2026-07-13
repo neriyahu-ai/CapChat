@@ -9,6 +9,9 @@ import {
   MessagesSquare,
   Users,
   Sparkles,
+  Download,
+  FileText,
+  Upload,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +23,7 @@ import { useChat } from "@/hooks/useChat";
 import { AddParticipantModal } from "@/components/conductor/AddParticipantModal";
 import { MessageBubble } from "@/components/conductor/MessageBubble";
 import { ParticipantCard } from "@/components/conductor/ParticipantCard";
+import { TimelineStore } from "@/lib/TimelineStore";
 import { CONTEXT_WINDOW } from "@/lib/conductor-data";
 
 export const Route = createFileRoute("/")({
@@ -41,10 +45,45 @@ function Conductor() {
   const [addOpen, setAddOpen] = useState(false);
 
   const totalTokens = useMemo(
-    () => active.messages.reduce((sum, m) => sum + m.tokens, 0),
+    () => TimelineStore.totalTokens(active.messages),
     [active.messages],
   );
-  const contextPct = Math.min(100, (totalTokens / CONTEXT_WINDOW) * 100);
+  const contextPct = TimelineStore.contextUtilization(active.messages);
+
+  const exportJson = () => {
+    const blob = new Blob([TimelineStore.exportAsJson(active)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${active.title.replace(/\s+/g, "_")}.json`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const exportMarkdown = () => {
+    const blob = new Blob([TimelineStore.exportAsMarkdown(active)], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `${active.title.replace(/\s+/g, "_")}.md`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
+  const importSession = () => {
+    const inputEl = document.createElement("input");
+    inputEl.type = "file"; inputEl.accept = ".json";
+    inputEl.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const session = TimelineStore.importFromJson(reader.result as string);
+        if (session) {
+          setSessions((prev) => [session, ...prev]);
+          setActiveId(session.id);
+        }
+      };
+      reader.readAsText(file);
+    };
+    inputEl.click();
+  };
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground">
@@ -60,9 +99,14 @@ function Conductor() {
           </div>
         </div>
         <div className="px-3">
-          <Button onClick={newSession} className="w-full justify-start gap-2" size="sm">
-            <Plus className="h-4 w-4" /> New Session
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={newSession} className="flex-1 justify-start gap-2" size="sm">
+              <Plus className="h-4 w-4" /> New
+            </Button>
+            <Button onClick={importSession} size="sm" variant="secondary" className="justify-center gap-2">
+              <Upload className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <div className="mt-4 px-4 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
           Sessions
@@ -115,6 +159,15 @@ function Conductor() {
           </div>
 
           <div className="flex-1" />
+
+          <div className="hidden items-center gap-1 lg:flex">
+            <Button onClick={exportJson} size="sm" variant="ghost" className="h-8 gap-1.5 text-xs">
+              <Download className="h-3.5 w-3.5" /> JSON
+            </Button>
+            <Button onClick={exportMarkdown} size="sm" variant="ghost" className="h-8 gap-1.5 text-xs">
+              <FileText className="h-3.5 w-3.5" /> MD
+            </Button>
+          </div>
 
           <Button
             onClick={toggleAutoRun}

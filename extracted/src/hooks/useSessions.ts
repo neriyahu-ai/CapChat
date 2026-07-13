@@ -1,11 +1,19 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Session, Participant } from "@/lib/conductor-types";
 import { createSeedSession, uid } from "@/lib/conductor-types";
 import type { ModelId } from "@/lib/conductor-data";
+import { TimelineStore } from "@/lib/TimelineStore";
 
 export function useSessions() {
-  const [sessions, setSessions] = useState<Session[]>(() => [createSeedSession()]);
+  const [sessions, setSessions] = useState<Session[]>(() => {
+    const saved = TimelineStore.load();
+    return saved && saved.length > 0 ? saved : [createSeedSession()];
+  });
   const [activeId, setActiveId] = useState<string>(() => sessions[0].id);
+
+  useEffect(() => {
+    TimelineStore.save(sessions);
+  }, [sessions]);
 
   const active = sessions.find((s) => s.id === activeId) ?? sessions[0];
 

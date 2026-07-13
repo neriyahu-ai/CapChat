@@ -14,6 +14,7 @@ import {
   FileText,
   Upload,
   KeyRound,
+  Terminal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import { useSessions } from "@/hooks/useSessions";
 import { useChat } from "@/hooks/useChat";
 import { AddParticipantModal } from "@/components/conductor/AddParticipantModal";
 import { ApiKeyModal } from "@/components/conductor/ApiKeyModal";
+import { TelemetryPanel } from "@/components/conductor/TelemetryPanel";
 import { MessageBubble } from "@/components/conductor/MessageBubble";
 import { ParticipantCard } from "@/components/conductor/ParticipantCard";
 import { TimelineStore } from "@/lib/TimelineStore";
@@ -48,6 +50,7 @@ function Conductor() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [apiKeyOpen, setApiKeyOpen] = useState(false);
+  const [telemetryOpen, setTelemetryOpen] = useState(false);
 
   const totalTokens = useMemo(
     () => TimelineStore.totalTokens(active.messages),
@@ -227,6 +230,15 @@ function Conductor() {
           </div>
 
           <Button
+            onClick={() => setTelemetryOpen((v) => !v)}
+            size="sm"
+            variant="ghost"
+            className={cn("h-8 px-2 text-xs", telemetryOpen && "text-primary")}
+          >
+            <Terminal className="h-3.5 w-3.5" />
+          </Button>
+
+          <Button
             onClick={useRealApi ? disableRealApi : enableRealApi}
             size="sm"
             variant="outline"
@@ -237,12 +249,12 @@ function Conductor() {
                 : "border-border/60 text-muted-foreground",
             )}
           >
-            {useRealApi ? "Live API" : "Mock"}
+            {useRealApi ? "Live" : "Mock"}
           </Button>
         </header>
 
         {/* Timeline */}
-        <div className="relative flex-1 overflow-hidden">
+        <div className={cn("relative flex-1 overflow-hidden", telemetryOpen && "border-b border-border/60")}>
           <ScrollArea className="h-full">
             <div className="mx-auto max-w-3xl px-4 py-6">
               {active.messages.length === 0 ? (
@@ -258,6 +270,13 @@ function Conductor() {
             </div>
           </ScrollArea>
         </div>
+
+        {/* Telemetry */}
+        {telemetryOpen && (
+          <div className="h-48 shrink-0 border-t border-border/60">
+            <TelemetryPanel />
+          </div>
+        )}
 
         {/* Input */}
         <div className="border-t border-border/60 bg-card/30 px-4 py-3">

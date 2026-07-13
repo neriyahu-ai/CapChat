@@ -5,6 +5,7 @@ import { mockResponseFor } from "@/lib/conductor-data";
 import { Orchestrator } from "@/lib/Orchestrator";
 import { createProvider, getSavedApiKeys } from "@/lib/providers";
 import type { ChatMessage } from "@/lib/providers/types";
+import { TelemetryStore } from "@/lib/TelemetryStore";
 import { toast } from "sonner";
 
 type UseChatProps = {
@@ -72,6 +73,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
   }, [input, updateActive]);
 
   const streamMockResponse = useCallback((participantId: string): Promise<void> => {
+    const telemetryId = TelemetryStore.start(uid(), participantId, "mock", "mock", 0);
     return new Promise((resolve) => {
       const session = sessions.find((s) => s.id === activeId);
       const p = session?.participants.find((x) => x.id === participantId);
@@ -111,6 +113,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
                 : s,
             ),
           );
+          TelemetryStore.complete(telemetryId, estimateTokens(chunks.join("")));
           resolve();
           return;
         }
@@ -132,6 +135,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
   }, [sessions, activeId, updateActive, setSessions]);
 
   const streamRealResponse = useCallback(async (participantId: string): Promise<void> => {
+    const telemetryId = TelemetryStore.start(uid(), participantId, "", "", 0);
     const session = sessions.find((s) => s.id === activeId);
     if (!session) return;
     const p = session.participants.find((x) => x.id === participantId);
@@ -160,16 +164,19 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     try {
       const messages = buildChatMessages(session, participantId);
       const stream = provider.streamChat(messages, p.model);
+      let fullContent = "";
 
       for await (const chunk of stream) {
         if (!streamingRef.current) break;
+        fullContent += chunk.content;
+        TelemetryStore.update(telemetryId, estimateTokens(fullContent));
         setSessions((prev) =>
           prev.map((s) =>
             s.id === activeId
               ? {
                   ...s,
                   messages: s.messages.map((m) =>
-                    m.id === msgId ? { ...m, content: m.content + chunk.content } : m,
+                    m.id === msgId ? { ...m, content: fullContent } : m,
                   ),
                 }
               : s,
@@ -177,7 +184,10 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
         );
         if (chunk.done) break;
       }
+
+      TelemetryStore.complete(telemetryId, estimateTokens(fullContent));
     } catch (err: any) {
+      TelemetryStore.error(telemetryId, err.message);
       toast.error(`API error: ${err.message}`);
     }
 

@@ -30,6 +30,7 @@ import { MessageBubble } from "@/components/conductor/MessageBubble";
 import { ParticipantCard } from "@/components/conductor/ParticipantCard";
 import { TimelineStore } from "@/lib/TimelineStore";
 import { CONTEXT_WINDOW } from "@/lib/conductor-data";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   component: Conductor,
@@ -86,6 +87,9 @@ function Conductor() {
         if (session) {
           setSessions((prev) => [session, ...prev]);
           setActiveId(session.id);
+          toast.success("Session imported");
+        } else {
+          toast.error("Invalid session file");
         }
       };
       reader.readAsText(file);
@@ -314,7 +318,11 @@ function Conductor() {
         </div>
         <ScrollArea className="flex-1">
           <div className="space-y-2 p-3">
-            {active.participants.map((p, i) => (
+            {active.participants.length === 0 ? (
+              <div className="py-12 text-center text-sm text-muted-foreground">
+                No participants yet.<br />Add one to start the conversation.
+              </div>
+            ) : active.participants.map((p, i) => (
               <ParticipantCard
                 key={p.id}
                 participant={p}

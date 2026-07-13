@@ -23,7 +23,15 @@ export const EXTENDED_MODELS: ModelInfo[] = [
   { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet", vendor: "OpenRouter", accent: "text-purple-300 border-purple-500/30 bg-purple-500/10", dot: "bg-purple-500" },
 ];
 
-export const modelById = (id: ModelId) => MODELS.find((m) => m.id === id)!;
+export const ALL_MODELS: ModelInfo[] = [
+  ...MODELS,
+  ...EXTENDED_MODELS.filter((e) => !MODELS.some((m) => m.id === e.id)),
+  { id: "google/gemma-4-31b-it:free", label: "Gemma 4 31B (free)", vendor: "Google", accent: "text-blue-400 border-blue-500/30 bg-blue-500/10", dot: "bg-blue-500" },
+  { id: "google/gemma-4-26b-a4b-it:free", label: "Gemma 4 26B (free)", vendor: "Google", accent: "text-blue-400 border-blue-500/30 bg-blue-500/10", dot: "bg-blue-500" },
+  { id: "qwen/qwen3-coder:free", label: "Qwen3 Coder (free)", vendor: "Alibaba", accent: "text-orange-400 border-orange-500/30 bg-orange-500/10", dot: "bg-orange-500" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", label: "Nemotron Nano 9B (free)", vendor: "Nvidia", accent: "text-green-400 border-green-500/30 bg-green-500/10", dot: "bg-green-500" },
+];
+export const modelById = (id: ModelId) => ALL_MODELS.find((m) => m.id === id) || MODELS[0];
 
 export type RolePreset = {
   id: string;

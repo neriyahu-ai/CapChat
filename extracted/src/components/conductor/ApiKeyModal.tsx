@@ -11,7 +11,14 @@ export function ApiKeyModal({ open, onOpenChange }: { open: boolean; onOpenChang
   const [show, setShow] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (open) setKeys(getSavedApiKeys());
+    if (open) {
+      const saved = getSavedApiKeys();
+      if (!saved.openrouter) {
+        const envKey = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+        if (envKey) saved.openrouter = envKey;
+      }
+      setKeys(saved);
+    }
   }, [open]);
 
   const save = () => {

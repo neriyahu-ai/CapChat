@@ -6,7 +6,9 @@ const CONFIG: ProviderConfig = {
   apiKeyEnv: "VITE_OPENROUTER_API_KEY",
   defaultBaseUrl: "https://openrouter.ai/api/v1",
   models: [
-    { id: "deepseek/deepseek-v4-flash:free", label: "DeepSeek V4 Flash (free)" },
+    { id: "google/gemma-4-31b-it:free", label: "Gemma 4 31B (free)" },
+    { id: "google/gemma-4-26b-a4b-it:free", label: "Gemma 4 26B (free)" },
+    { id: "qwen/qwen3-coder:free", label: "Qwen3 Coder (free)" },
     { id: "deepseek/deepseek-chat", label: "DeepSeek V4 Chat" },
     { id: "openai/gpt-4o", label: "GPT-4o" },
     { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },

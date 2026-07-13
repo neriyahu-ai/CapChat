@@ -71,6 +71,18 @@ export function useSessions() {
     }));
   }, [updateActive]);
 
+  const reorderParticipant = useCallback((id: string, direction: "up" | "down") => {
+    updateActive((s) => {
+      const idx = s.participants.findIndex((p) => p.id === id);
+      if (idx === -1) return s;
+      const next = [...s.participants];
+      const swap = direction === "up" ? idx - 1 : idx + 1;
+      if (swap < 0 || swap >= next.length) return s;
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return { ...s, participants: next };
+    });
+  }, [updateActive]);
+
   return {
     sessions,
     setSessions,
@@ -83,6 +95,7 @@ export function useSessions() {
     removeParticipant,
     toggleParticipant,
     editParticipant,
+    reorderParticipant,
     updateActive,
   };
 }

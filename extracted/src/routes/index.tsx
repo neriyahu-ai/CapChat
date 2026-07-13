@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import {
   Plus,
   Trash2,
@@ -34,7 +35,7 @@ function Conductor() {
   const {
     sessions, setSessions, active, activeId, setActiveId,
     newSession, deleteSession,
-    addParticipant, removeParticipant, toggleParticipant, editParticipant, updateActive,
+    addParticipant, removeParticipant, toggleParticipant, editParticipant, reorderParticipant, updateActive,
   } = useSessions();
 
   const {
@@ -85,10 +86,22 @@ function Conductor() {
     inputEl.click();
   };
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        sendUserMessage();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sendUserMessage]);
+
   return (
-    <div className="flex h-screen w-full bg-background text-foreground">
+    <Group orientation="horizontal" className="h-screen w-full bg-background text-foreground">
       {/* LEFT SIDEBAR — Sessions */}
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-border/60 bg-card/40 md:flex">
+      <Panel defaultSize={18} minSize={12} maxSize={30} className="hidden md:block">
+        <aside className="flex h-full flex-col border-r border-border/60 bg-card/40">
         <div className="flex items-center gap-2 px-4 py-4">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
             <Sparkles className="h-4 w-4" />
@@ -144,10 +157,14 @@ function Conductor() {
             })}
           </div>
         </ScrollArea>
-      </aside>
+        </aside>
+      </Panel>
+
+      <Separator className="hidden w-1.5 cursor-col-resize bg-transparent transition-colors hover:bg-border/40 md:block" />
 
       {/* MAIN */}
-      <main className="flex min-w-0 flex-1 flex-col">
+      <Panel minSize={30}>
+        <main className="flex h-full flex-col">
         {/* Top bar */}
         <header className="flex h-14 items-center gap-3 border-b border-border/60 bg-card/30 px-4">
           <div className="flex min-w-0 items-center gap-2">
@@ -240,10 +257,14 @@ function Conductor() {
             </Button>
           </div>
         </div>
-      </main>
+        </main>
+      </Panel>
+
+      <Separator className="hidden w-1.5 cursor-col-resize bg-transparent transition-colors hover:bg-border/40 lg:block" />
 
       {/* RIGHT SIDEBAR — Participants */}
-      <aside className="hidden w-72 shrink-0 flex-col border-l border-border/60 bg-card/40 lg:flex">
+      <Panel defaultSize={20} minSize={14} maxSize={35} className="hidden lg:block">
+        <aside className="flex h-full flex-col border-l border-border/60 bg-card/40">
         <div className="flex items-center gap-2 border-b border-border/60 px-4 py-4">
           <Users className="h-4 w-4 text-muted-foreground" />
           <h3 className="text-sm font-semibold">Participants</h3>
@@ -251,7 +272,7 @@ function Conductor() {
         </div>
         <ScrollArea className="flex-1">
           <div className="space-y-2 p-3">
-            {active.participants.map((p) => (
+            {active.participants.map((p, i) => (
               <ParticipantCard
                 key={p.id}
                 participant={p}
@@ -259,6 +280,9 @@ function Conductor() {
                 onTrigger={() => triggerParticipant(p.id)}
                 onRemove={() => removeParticipant(p.id)}
                 onEdit={(sp) => editParticipant(p.id, sp)}
+                onReorder={(dir) => reorderParticipant(p.id, dir)}
+                isFirst={i === 0}
+                isLast={i === active.participants.length - 1}
               />
             ))}
           </div>
@@ -268,10 +292,11 @@ function Conductor() {
             <Plus className="h-4 w-4" /> Add Participant
           </Button>
         </div>
-      </aside>
+        </aside>
+      </Panel>
 
       <AddParticipantModal open={addOpen} onOpenChange={setAddOpen} onAdd={addParticipant} />
-    </div>
+    </Group>
   );
 }
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Zap, Trash2, Pencil, Check, X } from "lucide-react";
+import { Zap, Trash2, Pencil, Check, X, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { modelById, roleColor } from "@/lib/conductor-data";
 import type { Participant } from "@/lib/conductor-types";
@@ -13,12 +13,18 @@ export function ParticipantCard({
   onTrigger,
   onRemove,
   onEdit,
+  onReorder,
+  isFirst,
+  isLast,
 }: {
   participant: Participant;
   onToggle: (v: boolean) => void;
   onTrigger: () => void;
   onRemove: () => void;
   onEdit: (systemPrompt: string) => void;
+  onReorder?: (direction: "up" | "down") => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }) {
   const info = modelById(participant.model);
   const [editing, setEditing] = useState(false);
@@ -94,6 +100,25 @@ export function ParticipantCard({
           <Button onClick={onRemove} size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-destructive">
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
+        </div>
+      )}
+
+      {onReorder && (
+        <div className="absolute right-3 top-2 flex gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={() => onReorder("up")}
+            disabled={isFirst}
+            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+          >
+            <ChevronUp className="h-3 w-3" />
+          </button>
+          <button
+            onClick={() => onReorder("down")}
+            disabled={isLast}
+            className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+          >
+            <ChevronDown className="h-3 w-3" />
+          </button>
         </div>
       )}
     </div>

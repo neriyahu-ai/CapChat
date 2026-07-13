@@ -64,6 +64,13 @@ export function useSessions() {
     }));
   }, [updateActive]);
 
+  const editParticipant = useCallback((id: string, systemPrompt: string) => {
+    updateActive((s) => ({
+      ...s,
+      participants: s.participants.map((p) => (p.id === id ? { ...p, systemPrompt } : p)),
+    }));
+  }, [updateActive]);
+
   return {
     sessions,
     setSessions,
@@ -75,6 +82,7 @@ export function useSessions() {
     addParticipant,
     removeParticipant,
     toggleParticipant,
+    editParticipant,
     updateActive,
   };
 }

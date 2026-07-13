@@ -34,7 +34,7 @@ function Conductor() {
   const {
     sessions, setSessions, active, activeId, setActiveId,
     newSession, deleteSession,
-    addParticipant, removeParticipant, toggleParticipant, updateActive,
+    addParticipant, removeParticipant, toggleParticipant, editParticipant, updateActive,
   } = useSessions();
 
   const {
@@ -258,6 +258,7 @@ function Conductor() {
                 onToggle={(v) => toggleParticipant(p.id, v)}
                 onTrigger={() => triggerParticipant(p.id)}
                 onRemove={() => removeParticipant(p.id)}
+                onEdit={(sp) => editParticipant(p.id, sp)}
               />
             ))}
           </div>

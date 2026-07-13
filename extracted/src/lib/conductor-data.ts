@@ -64,3 +64,25 @@ export function mockResponseFor(_roleName: string, _model: ModelId): string[] {
 }
 
 export const CONTEXT_WINDOW = 9999;
+
+const ROLE_COLORS = [
+  "border-rose-500/30 bg-rose-500/10 text-rose-400",
+  "border-blue-500/30 bg-blue-500/10 text-blue-400",
+  "border-orange-500/30 bg-orange-500/10 text-orange-400",
+  "border-teal-500/30 bg-teal-500/10 text-teal-400",
+  "border-pink-500/30 bg-pink-500/10 text-pink-400",
+  "border-indigo-500/30 bg-indigo-500/10 text-indigo-400",
+  "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
+  "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
+  "border-lime-500/30 bg-lime-500/10 text-lime-400",
+  "border-violet-500/30 bg-violet-500/10 text-violet-400",
+];
+
+export function roleColor(roleName: string): string {
+  let hash = 0;
+  for (let i = 0; i < roleName.length; i++) {
+    hash = ((hash << 5) - hash) + roleName.charCodeAt(i);
+    hash |= 0;
+  }
+  return ROLE_COLORS[Math.abs(hash) % ROLE_COLORS.length];
+}

@@ -1,7 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { modelById } from "@/lib/conductor-data";
+import { modelById, roleColor } from "@/lib/conductor-data";
 import type { Message } from "@/lib/conductor-types";
 
 export function MessageBubble({ m }: { m: Message }) {
@@ -26,7 +26,7 @@ export function MessageBubble({ m }: { m: Message }) {
       <div
         className={cn(
           "grid h-9 w-9 shrink-0 place-items-center rounded-full border text-xs font-bold",
-          modelInfo?.accent,
+          roleColor(m.authorName),
         )}
       >
         {m.authorName.slice(0, 2).toUpperCase()}

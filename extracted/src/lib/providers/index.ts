@@ -3,19 +3,13 @@ import { createDeepSeekProvider } from "./deepseek";
 import type { LLMProvider, ProviderConfig } from "./types";
 
 export const PROVIDER_CONFIGS: ProviderConfig[] = [
+  { id: "deepseek", label: "DeepSeek", apiKeyEnv: "VITE_DEEPSEEK_API_KEY", defaultBaseUrl: "https://api.deepseek.com/v1", models: [
+    { id: "deepseek-chat", label: "V4 Flash" },
+    { id: "deepseek-reasoner", label: "Reasoner" },
+  ]},
   { id: "openrouter", label: "OpenRouter", apiKeyEnv: "VITE_OPENROUTER_API_KEY", defaultBaseUrl: "https://openrouter.ai/api/v1", models: [
     { id: "google/gemma-4-31b-it:free", label: "Gemma 4 31B (free)" },
-    { id: "google/gemma-4-26b-a4b-it:free", label: "Gemma 4 26B (free)" },
     { id: "qwen/qwen3-coder:free", label: "Qwen3 Coder (free)" },
-    { id: "deepseek/deepseek-chat", label: "DeepSeek V4 Chat" },
-    { id: "openai/gpt-4o", label: "GPT-4o" },
-    { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
-    { id: "meta-llama/llama-3-70b-instruct", label: "Llama 3 70B" },
-    { id: "google/gemini-1.5-pro", label: "Gemini 1.5 Pro" },
-  ]},
-  { id: "deepseek", label: "DeepSeek", apiKeyEnv: "VITE_DEEPSEEK_API_KEY", defaultBaseUrl: "https://api.deepseek.com/v1", models: [
-    { id: "deepseek-chat", label: "DeepSeek Chat" },
-    { id: "deepseek-reasoner", label: "DeepSeek Reasoner" },
   ]},
 ];
 
@@ -44,7 +38,9 @@ export function createProvider(providerId: string): LLMProvider | null {
   const keys = getSavedApiKeys();
   let apiKey = keys[providerId] || "";
   if (!apiKey) {
-    const envKey = import.meta.env.VITE_OPENROUTER_API_KEY || import.meta.env.OPENROUTER_API_KEY || "";
+    const cfg = PROVIDER_CONFIGS.find((c) => c.id === providerId);
+    const envName = cfg?.apiKeyEnv || `VITE_${providerId.toUpperCase()}_API_KEY`;
+    const envKey = import.meta.env[envName] || "";
     if (envKey) apiKey = envKey;
   }
   if (!apiKey) return null;

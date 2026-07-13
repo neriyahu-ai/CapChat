@@ -141,7 +141,7 @@ export function useChat({ active, updateActive, sessions, activeId, setSessions 
     const p = session.participants.find((x) => x.id === participantId);
     if (!p) return;
 
-    const provider = createProvider("openrouter") || createProvider("deepseek");
+    const provider = createProvider("deepseek") || createProvider("openrouter");
     if (!provider) {
       toast.error("No API key configured. Add one in API Keys settings.");
       return;

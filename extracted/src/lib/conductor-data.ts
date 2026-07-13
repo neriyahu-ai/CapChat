@@ -24,6 +24,8 @@ export const EXTENDED_MODELS: ModelInfo[] = [
 ];
 
 export const ALL_MODELS: ModelInfo[] = [
+  { id: "deepseek-chat", label: "DeepSeek V4 Flash", vendor: "DeepSeek", accent: "text-blue-400 border-blue-500/30 bg-blue-500/10", dot: "bg-blue-500" },
+  { id: "deepseek-reasoner", label: "DeepSeek Reasoner", vendor: "DeepSeek", accent: "text-indigo-400 border-indigo-500/30 bg-indigo-500/10", dot: "bg-indigo-500" },
   ...MODELS,
   ...EXTENDED_MODELS.filter((e) => !MODELS.some((m) => m.id === e.id)),
   { id: "google/gemma-4-31b-it:free", label: "Gemma 4 31B (free)", vendor: "Google", accent: "text-blue-400 border-blue-500/30 bg-blue-500/10", dot: "bg-blue-500" },

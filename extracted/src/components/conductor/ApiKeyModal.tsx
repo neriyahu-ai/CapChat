@@ -13,6 +13,10 @@ export function ApiKeyModal({ open, onOpenChange }: { open: boolean; onOpenChang
   useEffect(() => {
     if (open) {
       const saved = getSavedApiKeys();
+      if (!saved.deepseek) {
+        const envKey = import.meta.env.VITE_DEEPSEEK_API_KEY || "";
+        if (envKey) saved.deepseek = envKey;
+      }
       if (!saved.openrouter) {
         const envKey = import.meta.env.VITE_OPENROUTER_API_KEY || "";
         if (envKey) saved.openrouter = envKey;

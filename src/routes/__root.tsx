@@ -78,10 +78,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Conductor — Multi-LLM Chat Playground" },
+      { title: "CapChat — Multi-LLM Chat Playground" },
       { name: "description", content: "Orchestrate a group chat between multiple AI agents with distinct roles and models." },
-      { name: "author", content: "Conductor" },
-      { property: "og:title", content: "Conductor — Multi-LLM Chat Playground" },
+      { name: "author", content: "CapChat" },
+      { property: "og:title", content: "CapChat — Multi-LLM Chat Playground" },
       { property: "og:description", content: "Orchestrate a group chat between multiple AI agents with distinct roles and models." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

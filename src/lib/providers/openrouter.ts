@@ -39,7 +39,7 @@ export class OpenRouterProvider implements LLMProvider {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
         "HTTP-Referer": typeof window !== "undefined" ? window.location.origin : "conductor-app",
-        "X-Title": "Conductor",
+        "X-Title": "CapChat",
       },
       body: JSON.stringify({
         model,

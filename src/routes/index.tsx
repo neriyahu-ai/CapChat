@@ -33,10 +33,10 @@ import { CONTEXT_WINDOW } from "@/lib/conductor-data";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
-  component: Conductor,
+  component: CapChat,
 });
 
-function Conductor() {
+function CapChat() {
   const {
     sessions, setSessions, active, activeId, setActiveId,
     newSession, deleteSession,
@@ -111,14 +111,14 @@ function Conductor() {
   return (
     <Group orientation="horizontal" className="h-screen w-full bg-background text-foreground">
       {/* LEFT SIDEBAR — Sessions */}
-      <Panel defaultSize={18} minSize={12} maxSize={30} className="hidden md:block">
+      <Panel defaultSize="18" minSize="12" maxSize="30" className="hidden md:block">
         <aside className="flex h-full flex-col border-r border-border/60 bg-card/40">
         <div className="flex items-center gap-2 px-4 py-4">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
             <Sparkles className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold tracking-tight">Conductor</h1>
+            <h1 className="truncate text-sm font-semibold tracking-tight">CapChat</h1>
             <p className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">Multi-LLM playground</p>
           </div>
         </div>
@@ -179,7 +179,7 @@ function Conductor() {
       <Separator className="hidden w-1.5 cursor-col-resize bg-transparent transition-colors hover:bg-border/40 md:block" />
 
       {/* MAIN */}
-      <Panel minSize={30}>
+      <Panel minSize="30">
         <main className="flex h-full flex-col">
         {/* Top bar */}
         <header className="flex h-14 items-center gap-3 border-b border-border/60 bg-card/30 px-4">
@@ -309,7 +309,7 @@ function Conductor() {
       <Separator className="hidden w-1.5 cursor-col-resize bg-transparent transition-colors hover:bg-border/40 lg:block" />
 
       {/* RIGHT SIDEBAR — Participants */}
-      <Panel defaultSize={20} minSize={14} maxSize={35} className="hidden lg:block">
+      <Panel defaultSize="20" minSize="14" maxSize="35" className="hidden lg:block">
         <aside className="flex h-full flex-col border-l border-border/60 bg-card/40">
         <div className="flex items-center gap-2 border-b border-border/60 px-4 py-4">
           <Users className="h-4 w-4 text-muted-foreground" />
